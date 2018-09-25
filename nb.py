@@ -24,7 +24,7 @@ vectorizer = TfidfVectorizer(
     use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
 y = df.liked
 X = vectorizer.fit_transform(df.txt)
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
 clf = naive_bayes.MultinomialNB()
 clf.fit(X_train, y_train)
 print(roc_auc_score(y_test, clf.predict_log_proba(X_test)[:, 1]))
