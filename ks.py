@@ -12,8 +12,8 @@ from collections import Counter
 import pandas as pd
 from sklearn.metrics import accuracy_score
  
-df = pd.read_csv("./final/data/rest_class.txt", sep=",",
-                 names=["liked", "txt", "date"])
+df = pd.read_csv("./data/clean.txt", sep=",",
+                 names=["polaridad", "texto"])
                  
 stopsetset = set(stopwords.words('spanish'))
 stopsetset.add('uber')
@@ -27,9 +27,9 @@ stopsetset.add('emoji')
 
 vectorizer = TfidfVectorizer(
     use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
-X = vectorizer.fit_transform(df.txt)
+X = vectorizer.fit_transform(df.texto.values.astype('U'))
 # Creating true labels for 30 training sentences
-y = df.liked
+y = df.polaridad
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
 
 
@@ -49,7 +49,6 @@ test_sentences = ["rosario  tomarse patente igj 654 3000 tiro trabo puertas",\
 
 Test = vectorizer.transform(test_sentences)
  
-true_test_labels = ['positive','negative']
 predicted_labels_knn = modelknn.predict(Test)
 predicted_labels_kmeans = modelkmeans.predict(X_test)
 print(accuracy_score(y_test, predicted_labels_kmeans))

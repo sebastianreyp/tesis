@@ -2,6 +2,7 @@ import pandas as pd
 import nltk
 import numpy as np
 from nltk.corpus import stopwords
+import time 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cross_validation import train_test_split
 from sklearn.mixture import BayesianGaussianMixture
@@ -12,13 +13,13 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
 from tkinter import *
 
-df_original = pd.read_csv("./final/data/original.txt", sep=",",
-                 names=["date", "text"])
-df_clean = pd.read_csv("./final/data/clean.txt", sep=",",
-                 names=["date", "text"])
+df_original = pd.read_csv("./data/data.csv", sep=",",
+                 names=["polaridad", "texto"])
+df_clean = pd.read_csv("./data/clean.txt", sep=",",
+                 names=["polaridad", "texto"])
 
-df = pd.read_csv("./final/data/rest_class.txt", sep=",",
-                 names=["liked", "txt", "date"])
+df = pd.read_csv("./data/clean.txt", sep=",",
+                 names=["polaridad", "texto"])
 stopsetset = set(stopwords.words('spanish'))
 stopsetset.add('uber')
 stopsetset.add('Uber_peru')
@@ -34,21 +35,28 @@ root.geometry('1200x600')
 root.title("Registration Form")
 texto = StringVar()
 
+def procesando(p):
+    texto = "Procesando...."  if(p) else ""
+    res_p.config(text=texto) 
+
 def extraer():
     # entry_one.insert(INSERT, texto.get())
-    entry_one.insert(INSERT, str(df_original.text[0:100]))
+    entry_one.insert(INSERT, str(df_original.texto[0:100]))
     print("Extraer")
 
 def limpiar():
-    entry_two.insert(INSERT, str(df_clean.text[0:100]))
+    entry_two.insert(INSERT, str(df_clean.texto[0:100]))
     print("Limpiando")
 
 def procesar():
+    procesando(True)
     nb_accurrency = nb()
     knn_accurrency = knn()
     kmeans_accurrency = kmeans()
-    calcular_c(nb_accurrency , knn_accurrency, kmeans_accurrency)
-    print("Procesando")
+    emnb_accurrency = emnb()
+    calcular_c(nb_accurrency , knn_accurrency, kmeans_accurrency,emnb_accurrency)
+    print("Procesado")
+    procesando(False)
 
 def calcular():
     res_one.config(text='Navies Bayes - EM : Positivo')
@@ -56,17 +64,30 @@ def calcular():
     res_tree.config(text='KMeans : Positivo')
     res_four.config(text='KNN : Negativo')
 
-def calcular_c(nb, knn, kmeans):
-    # res_one_c.config(text='Navies Bayes - EM : Positivo')
+def calcular_c(nb, knn, kmeans, emnb):
+    res_one_c.config(text='Navies Bayes - EM : Positivo: ' + emnb)
     res_two_c.config(text='Efectvidad de Navies Bayes : ' + nb)
     res_tree_c.config(text='Efectvidad de KMEANS : '+ kmeans)
     res_four_c.config(text='Efectvidad de KNN : '+ knn)
 
+def emnb():
+    vectorizer = TfidfVectorizer(
+    use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
+    y = df.polaridad
+    X = vectorizer.fit_transform(df.texto.values.astype('U')).toarray()
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=30)
+    clf = BayesianGaussianMixture(n_components=2,covariance_type='full')
+    clf.fit(X_train)
+    predicted = clf.predict(X_test)
+    score = str(accuracy_score(y_test, predicted))
+    print("Porcentaje EMNB : " + score)
+    return score
+
 def nb():
     vectorizer = TfidfVectorizer(
     use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
-    y = df.liked
-    X = vectorizer.fit_transform(df.txt)
+    y = df.polaridad
+    X = vectorizer.fit_transform(df.texto.values.astype('U'))
     X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.20, random_state=42)
     clf = naive_bayes.MultinomialNB()
     clf.fit(X_train, y_train)
@@ -77,9 +98,9 @@ def nb():
 def knn():
     vectorizer = TfidfVectorizer(
     use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
-    X = vectorizer.fit_transform(df.txt)
+    X = vectorizer.fit_transform(df.texto.values.astype('U'))
     # Creating true labels for 30 training sentences
-    y = df.liked
+    y = df.polaridad
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
     modelknn = KNeighborsClassifier(n_neighbors=2)
     modelknn.fit(X_train,y_train)
@@ -90,9 +111,9 @@ def knn():
 def kmeans():
     vectorizer = TfidfVectorizer(
     use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
-    X = vectorizer.fit_transform(df.txt)
+    X = vectorizer.fit_transform(df.texto.values.astype('U'))
     # Creating true labels for 30 training sentences
-    y = df.liked
+    y = df.polaridad
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
     modelkmeans = KMeans(n_clusters=2, init='k-means++', max_iter=200, n_init=1)
     modelkmeans.fit(X_train)
@@ -138,6 +159,9 @@ res_tree_c = Label(root, text="Efectvidad de KMeans :",width=40,font=("bold", 10
 res_tree_c.place(x=700,y=410)
 res_four_c = Label(root, text="Efectvidad de KNN :",width=40,font=("bold", 10))
 res_four_c.place(x=700,y=440)
+
+res_p = Label(root, text="",width=40,font=("bold", 10))
+res_p.place(x=700,y=470)
 
 
 entry_texto = Entry(root, width=57, textvariable=texto)

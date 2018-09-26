@@ -8,8 +8,8 @@ from sklearn import naive_bayes
 from sklearn.metrics import roc_auc_score
 from tkinter import *
 
-df = pd.read_csv("./final/data/rest_class.txt", sep=",",
-                 names=["liked", "txt", "date"])
+df = pd.read_csv("./data/clean.txt", sep=",",
+                 names=["liked", "txt"])
 stopsetset = set(stopwords.words('spanish'))
 stopsetset.add('uber')
 stopsetset.add('Uber_peru')
@@ -23,7 +23,7 @@ stopsetset.add('emoji')
 vectorizer = TfidfVectorizer(
     use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
 y = df.liked
-X = vectorizer.fit_transform(df.txt)
+X = vectorizer.fit_transform(df.txt.values.astype('U'))
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
 clf = naive_bayes.MultinomialNB()
 clf.fit(X_train, y_train)
