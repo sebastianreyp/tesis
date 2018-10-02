@@ -1,7 +1,9 @@
 import pandas as pd
 import nltk
+import json
 import numpy as np
 from nltk.corpus import stopwords
+from os import path
 import time 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cross_validation import train_test_split
@@ -11,6 +13,8 @@ from sklearn.cluster import KMeans
 from sklearn import naive_bayes
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
+from wordcloud import WordCloud, STOPWORDS
+
 from tkinter import *
 
 df_original = pd.read_csv("./data/data.csv", sep=",",
@@ -46,6 +50,17 @@ def extraer():
 
 def limpiar():
     entry_two.insert(INSERT, str(df_clean.texto[0:100]))
+    #texts = df_clean.texto.tolist()
+    texts = getData()
+    palabras = ['']
+    for t in texts:
+        if isinstance(t, str):
+            wrds = t.split(' ')
+            palabras = palabras + wrds
+            
+    #print(palabras)
+    create_wordcloud(" ".join(palabras))
+    #print(palabras)
     print("Limpiando")
 
 def procesar():
@@ -121,6 +136,37 @@ def kmeans():
     score = str(accuracy_score(y_test, predicted_labels_kmeans))
     print("Porcentaje KMEANS : " + score)
     return score
+
+def getData():
+    fp  = open('./data/prueba.json')
+    words= [word.strip() for line in fp.readlines() for word in line.split('$') if word.strip()]
+    #print(", ".join(words)) # or `print(words)` if you want to print out `words` as a list
+    #with open('./prueba.json') as f:
+    # data = json.load(f)
+    data = []
+    for t in words:
+        try:
+            #print(json.loads(t)["retweeted_status"]["extended_tweet"]["full_text"])
+            d = json.loads(t)["retweeted_status"]["extended_tweet"]["full_text"]
+            if d not in data:
+                data.append(d)
+        except:
+            try:
+                #print(json.loads(t)["text"])
+                d = json.loads(t)["text"]
+                if d not in data:
+                    data.append(d)
+            except:
+                print("-")
+    return data
+
+def create_wordcloud(text):
+    currdir = path.dirname(__file__)
+    stopwords = set(STOPWORDS)
+    wc = WordCloud(background_color="white",max_words=200, stopwords=stopwords)
+    wc.generate(text)
+    wc.to_file(path.join(currdir, "wordcloud.png"))
+
 
 
 title = Label(root, text="Análisis de sentimiento",width=20,font=("bold", 20))
