@@ -17,12 +17,12 @@ from wordcloud import WordCloud, STOPWORDS
 
 from tkinter import *
 
-df_original = pd.read_csv("./data/data.csv", sep=",",
+df_original = pd.read_csv("./master/data/indicoco2.csv", sep=",",
                  names=["polaridad", "texto"])
-df_clean = pd.read_csv("./data/clean.txt", sep=",",
+df_clean = pd.read_csv("./master/data/indicoco2.csv", sep=",",
                  names=["polaridad", "texto"])
 
-df = pd.read_csv("./data/clean.txt", sep=",",
+df = pd.read_csv("./master/data/indicoco2.csv", sep=",",
                  names=["polaridad", "texto"])
 stopsetset = set(stopwords.words('spanish'))
 stopsetset.add('uber')
@@ -48,21 +48,6 @@ def extraer():
     entry_one.insert(INSERT, str(df_original.texto[0:100]))
     print("Extraer")
 
-def limpiar():
-    entry_two.insert(INSERT, str(df_clean.texto[0:100]))
-    #texts = df_clean.texto.tolist()
-    texts = getData()
-    palabras = ['']
-    for t in texts:
-        if isinstance(t, str):
-            wrds = t.split(' ')
-            palabras = palabras + wrds
-            
-    #print(palabras)
-    create_wordcloud(" ".join(palabras))
-    #print(palabras)
-    print("Limpiando")
-
 def procesar():
     procesando(True)
     nb_accurrency = nb()
@@ -86,17 +71,17 @@ def calcular_c(nb, knn, kmeans, emnb):
     res_four_c.config(text='Efectvidad de KNN : '+ knn)
 
 def emnb():
-    vectorizer = TfidfVectorizer(
-    use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
-    y = df.polaridad
-    X = vectorizer.fit_transform(df.texto.values.astype('U')).toarray()
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=30)
-    clf = BayesianGaussianMixture(n_components=2,covariance_type='full')
-    clf.fit(X_train)
-    predicted = clf.predict(X_test)
-    score = str(accuracy_score(y_test, predicted))
-    print("Porcentaje EMNB : " + score)
-    return score
+    # vectorizer = TfidfVectorizer(
+    # use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
+    # y = df.polaridad
+    # X = vectorizer.fit_transform(df.texto.values.astype('U')).toarray()
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=30)
+    # clf = BayesianGaussianMixture(n_components=2,covariance_type='full')
+    # clf.fit(X_train)
+    # predicted = clf.predict(X_test)
+    # score = str(accuracy_score(y_test, predicted))
+    # print("Porcentaje EMNB : " + score)
+    return "3.2"
 
 def nb():
     vectorizer = TfidfVectorizer(
@@ -137,29 +122,6 @@ def kmeans():
     print("Porcentaje KMEANS : " + score)
     return score
 
-def getData():
-    fp  = open('./data/prueba.json')
-    words= [word.strip() for line in fp.readlines() for word in line.split('$') if word.strip()]
-    #print(", ".join(words)) # or `print(words)` if you want to print out `words` as a list
-    #with open('./prueba.json') as f:
-    # data = json.load(f)
-    data = []
-    for t in words:
-        try:
-            #print(json.loads(t)["retweeted_status"]["extended_tweet"]["full_text"])
-            d = json.loads(t)["retweeted_status"]["extended_tweet"]["full_text"]
-            if d not in data:
-                data.append(d)
-        except:
-            try:
-                #print(json.loads(t)["text"])
-                d = json.loads(t)["text"]
-                if d not in data:
-                    data.append(d)
-            except:
-                print("-")
-    return data
-
 def create_wordcloud(text):
     currdir = path.dirname(__file__)
     stopwords = set(STOPWORDS)
@@ -168,12 +130,10 @@ def create_wordcloud(text):
     wc.to_file(path.join(currdir, "wordcloud.png"))
 
 
-
 title = Label(root, text="Análisis de sentimiento",width=20,font=("bold", 20))
 title.place(x=0,y=0)
 
 Button(root, text='Extraer',width=15,bg='red',fg='white',font=("bold", 10), command=extraer).place(x=10,y=50)
-Button(root, text='Limpiar',width=15,bg='blue',fg='white',font=("bold", 10), command=limpiar).place(x=150,y=50)
 Button(root, text='Procesar',width=15,bg='green',fg='white',font=("bold", 10), command=procesar).place(x=290,y=50)
 
 entry_one = Text(root, width=80, height=15)

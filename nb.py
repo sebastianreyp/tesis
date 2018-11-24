@@ -21,7 +21,7 @@ stopsetset.add('taxi')
 stopsetset.add('emoji')
 
 vectorizer = TfidfVectorizer(
-    use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
+	 use_idf=True, lowercase=True, strip_accents='ascii', stop_words=stopsetset)
 y = df.liked
 X = vectorizer.fit_transform(df.txt.values.astype('U'))
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
